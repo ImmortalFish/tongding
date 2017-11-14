@@ -38,9 +38,12 @@ def HandleFiber(data, save=None, save_path=None):
         return df
     temp_fiber = temp_fiber.groupby('条码_光纤预制棒编号', sort=False, as_index=False).apply(Func_1)
     
-    return temp_fiber
+    if save == True:
+        bf.Save(temp_fiber, save_path)
+    else:
+        return temp_fiber
 
 if __name__ == '__main__':
     
     fiber = pd.read_excel('../raw_data/fiber data.xlsx')
-    temp_fiber = HandleFiber(fiber)
+    temp_fiber = HandleFiber(fiber, save=True, save_path='../temp_data/fiber.xlsx')
