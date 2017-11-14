@@ -9,8 +9,9 @@ Created on Mon Nov 13 11:12:17 2017
 '''
 
 import pandas as pd
+pd.options.mode.chained_assignment = None
 
-def Rename(data, prefixes=None, inplace=None, save=None, save_path=None):
+def Rename(data, prefixes=None):
     '''根据给定前缀prefixes重命名数据集的列名'''
     temp_data = data.copy()
     if prefixes is None:
@@ -21,18 +22,15 @@ def Rename(data, prefixes=None, inplace=None, save=None, save_path=None):
     new_name = map(lambda x: prefixes + x, list(temp_data.columns))
     temp_data.columns = new_name
     
-    if save == True:
-        try:
-            temp_data.to_excel(save_path)
-        except Exception as e:
-            print('save_path throw a error!', e)
-    else:
-        pass
-    
-    if inplace == True:
-        data = temp_data
-    else:
-        return temp_data
+    return temp_data
+
+def Save(data, save_path, file_type='excel'):
+    '''保存文件'''
+    if file_type == 'excel':
+        data.to_excel(save_path, index=False, encoding='UTF-8')
+    elif file_type == 'csv':
+        data.to_csv(save_path, index=False, encoding='UTF-8')
+    print('保存成功!')
     
 def Del(data, name, len_list=(5,7,8), inplace=None):
     '''删除给定数据集data中name属性列的异常的编码'''
@@ -47,20 +45,16 @@ def Del(data, name, len_list=(5,7,8), inplace=None):
     else:
         return temp_data
     
-def SplitNumber(data, name, split_dict=None, inplace=None):
+def SplitNumber(data, name, split_dict=None):
     '''对给定数据集data的name属性列，按照说明拆分编码'''
     temp_data = data.copy()
     for key, value in split_dict.items():
         col_name = name + '_' + key
         temp_data[col_name] = temp_data[name].apply(lambda x: x[value[0] : value[-1] + 1])
-    
-    if inplace == True:
-        data = temp_data
-    else:
-        return temp_data
+    return temp_data
     
 def AppendPk(pk_1, pk_2, save=None, save_path=None):
-    '''合并pk'''
+    '''合并pk_1和ok_2'''
     pk = pk_1.append(pk_2, ignore_index=True)
     if save == True:
         try:
@@ -70,9 +64,9 @@ def AppendPk(pk_1, pk_2, save=None, save_path=None):
     else:
         return pk
             
-def MergeData(pk, core, on_col, how='left', save=None, save_path=None):
-    '''合并pk和core两个表'''
-    temp_merge = pd.merge(core, pk, on=on_col, how=how)
+def MergeData(data_1, data_2, left_on, right_on, how='left', save=None, save_path=None):
+    '''合并data_1和data_2两个表'''
+    temp_merge = pd.merge(data_1, data_2, left_on=left_on, right_on=right_on, how=how)
     if save == True:
         try:
             temp_merge.to_excel(save_path, index=False, encoding='UTF-8')
@@ -94,5 +88,8 @@ def Normalized(data, name, inplace=None):
     else:
         return temp_data
     
-
-    
+def LowerToUpper(data, name):
+    '''对给定数据集data的name列进行小写转大写'''
+    temp_data = data.copy()
+    temp_data[name] = temp_data[name].apply(lambda x: x.upper())
+    return temp_data
