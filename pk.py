@@ -26,7 +26,7 @@ def ExpandPk(pk, save=None, save_path=None):
     temp_pk.drop(drop_list, axis=1, inplace=True)
     
     #删除异常的芯棒编码
-    temp_pk = bf.Del(temp_pk, '芯棒编码', inplace=False)
+    temp_pk = bf.Del(temp_pk, '芯棒编码')
     
     #把平均值换成数值
     def Func(df):

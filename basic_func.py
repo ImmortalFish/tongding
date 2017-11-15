@@ -24,6 +24,14 @@ def Rename(data, prefixes=None):
     
     return temp_data
 
+def Rename1(data):
+    '''重命名列名'''
+    temp_data = data.copy()
+    new_name = [str(x).strip(')').strip('(').replace("'", '').replace(', ', '-') for x in list(temp_data.columns)]
+    new_name[0].strip('_')
+    temp_data.columns = new_name
+    return temp_data
+
 def Save(data, save_path, file_type='excel'):
     '''保存文件'''
     if file_type == 'excel':
@@ -32,18 +40,15 @@ def Save(data, save_path, file_type='excel'):
         data.to_csv(save_path, index=False, encoding='UTF-8')
     print('保存成功!')
     
-def Del(data, name, len_list=(5,7,8), inplace=None):
+def Del(data, name, len_list=(5,7,8)):
     '''删除给定数据集data中name属性列的异常的编码'''
     temp_data = data.copy()
     col_name = name
     temp_data['judge'] = [True if len(x) in len_list else False for x in temp_data[col_name]]
     temp_data = temp_data[temp_data['judge'] == False]
     temp_data.drop('judge', axis=1, inplace=True)
-    
-    if inplace == True:
-        data = temp_data
-    else:
-        return temp_data
+
+    return temp_data
     
 def SplitNumber(data, name, split_dict=None):
     '''对给定数据集data的name属性列，按照说明拆分编码'''
