@@ -28,7 +28,7 @@ def Rename1(data):
     '''重命名列名'''
     temp_data = data.copy()
     new_name = [str(x).strip(')').strip('(').replace("'", '').replace(', ', '-') for x in list(temp_data.columns)]
-    new_name[0].strip('_')
+    new_name[0] = new_name[0].strip('-')
     temp_data.columns = new_name
     return temp_data
 
