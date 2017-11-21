@@ -36,30 +36,22 @@ def Merge(pk, core, ovd, fiber, related, save=None, save_path=None):
     pk_core_ovd_related = bf.SplitNumber(pk_core_ovd_related, '光棒编号', split_dict=split_dict)
         
     #合并pk_core_ovd_related和fiber
-    final = pd.merge(fiber, pk_core_ovd_related, left_on='条码_光纤预制棒编号', right_on='光纤编号', how='inner')
+    final = pd.merge(fiber, pk_core_ovd_related, left_on='条码_光纤预制棒编号', right_on='光纤编号', how='left')
     final.drop('光纤编号', axis=1, inplace=True)
     
-#    #删除不必要的列
-#    drop_list = ['等级', '计划物料编码', '实际物料编码', '生产日期', '检验日期', '备注', '归一化', 
-#                 'ovd_设备', 'pk_设备代码', 'core_芯棒编码', 'pk_归一化范围', 'pk_归一化']
-#    final.drop(drop_list, axis=1, inplace=True)
-#    
-#    #通过反面展开fiber
-#    fiber_name = list(final.columns)[:58]
-#    fiber = final[fiber_name].drop_duplicates()
-#    final_last = final.drop(fiber_name[1:], axis=1)
-#    temp_final = final_last.pivot_table(index='条码', columns='pk_反面').reset_index()
-#    temp_final = bf.Rename1(temp_final)
-#    final = pd.merge(fiber, temp_final, on='条码', how='outer')
-#    
-#    def Func(df):
-#        df['pk_长度-0'].fillna(df['pk_长度-0'].mean(), inplace=True)
-#        df['pk_长度-1'].fillna(df['pk_长度-1'].mean(), inplace=True)
-#        return df
-#    final = final.groupby('光棒编号', sort=False, as_index=False).apply(Func)
+    #为fiber表的归一化定义一个flag来指示是否在这个区间里
+    final['flag'] = [1 if x['pk_min_num'] < x['归一化'] <= x['pk_max_num'] else 0 for index, x in final.iterrows()]
+    
+# =============================================================================
+#     #删除不必要的列
+#     drop_list = ['等级', '计划物料编码', '实际物料编码', '生产日期', '检验日期', '备注', '归一化', 
+#                  'ovd_设备', 'pk_设备代码', 'core_芯棒编码', 'pk_归一化']
+#     final.drop(drop_list, axis=1, inplace=True)
+# =============================================================================
     
     if save == True:
         bf.Save(final, save_path)
+        return None
     else:
         return final
     
@@ -70,5 +62,5 @@ if __name__ == '__main__':
     ovd = pd.read_excel('../temp_data/ovd.xlsx')
     fiber = pd.read_excel('../temp_data/fiber.xlsx')
     related = pd.read_excel('../temp_data/光棒-光纤对应标号.xlsx')
-    see = Merge(pk, core, ovd, fiber, related)
-#    , save=True, save_path='../final_data/final_laping.xlsx' 
+    see = Merge(pk, core, ovd, fiber, related, save=True, save_path='../final_data/final_11_21.xlsx')#, save=True, save_path='../final_data/final_laping.xlsx'
+     
