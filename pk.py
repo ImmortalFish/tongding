@@ -49,7 +49,7 @@ def ExpandPk(pk, save=None, save_path=None):
     temp_pk['位置'] = [Func(x) for x in temp_pk['位置']]
   
     #把负的那一列转为位置
-    temp_pk['新位置'] = [x['长度'] - x['位置'] if x['反面'] == 0 
+    temp_pk['新位置'] = [x['长度'] - x['位置'] if x['反面'] == 1 
                         else x['位置'] 
                         for loc, x in temp_pk.iterrows()]
     #添加归一化列
@@ -60,31 +60,73 @@ def ExpandPk(pk, save=None, save_path=None):
     
     #给归一化后的数值加一个范围
     def Func_2(df):
-        if 1 in df['反面'].values:
+        if 0 not in df['反面'].values:
             df_1 = df[df['反面'] == 1]
             df_1.sort_values('归一化', inplace=True)
-            min_num_1 = list(df_1['归一化'].values[:-1])
-            min_num_1.insert(0, 0)
-            max_num_1 = list(df_1['归一化'].values)
+            min_num_1 = list(df_1['归一化'].values)
+            max_num_1 = list(df_1['归一化'].values[1:])
+            max_num_1.append(1)
             df_1['min_num'] = min_num_1
             df_1['max_num'] = max_num_1
-            
-        if 0 in df['反面'].values:
+            df_1['zhong_min'] = 0
+            df_1['zhong_max'] = df_1['归一化'].values[0]
+            df_1['zhong_位置'] = df_1['新位置'].values[0] / 2
+            return df_1
+        
+        elif 1 not in df['反面'].values:
             df_0 = df[df['反面'] == 0]
             df_0.sort_values('归一化', inplace=True)
-            min_num_0 = list(df_0['归一化'].values)
-            max_num_0 = list(df_0['归一化'].values[1:])
-            max_num_0.append(1)
+            min_num_0 = list(df_0['归一化'].values[:-1])
+            min_num_0.insert(0, 0)
+            max_num_0 = list(df_0['归一化'].values)
+            df_0['min_num'] = min_num_0
+            df_0['max_num'] = max_num_0
+            df_0['zhong_min'] = df_0['归一化'].values[-1]
+            df_0['zhong_max'] = 1
+            df_0['zhong_位置'] = (df_0['新位置'].values[-1] + df['长度'].values[0]) / 2
+            return df_0
+        
+        else:
+            df_0 = df[df['反面'] == 0]
+            df_0.sort_values('归一化', inplace=True)
+            min_num_0 = list(df_0['归一化'].values[:-1])
+            min_num_0.insert(0, 0)
+            max_num_0 = list(df_0['归一化'].values)
             df_0['min_num'] = min_num_0
             df_0['max_num'] = max_num_0
             
-        if 1 not in df['反面'].values:
-            return df_0
-        elif 0 not in df['反面'].values:
-            return df_1
-        else:
+            df_1 = df[df['反面'] == 1]
+            df_1.sort_values('归一化', inplace=True)
+            min_num_1 = list(df_1['归一化'].values)
+            max_num_1 = list(df_1['归一化'].values[1:])
+            max_num_1.append(1)
+            df_1['min_num'] = min_num_1
+            df_1['max_num'] = max_num_1
+            
             df = df_0.append(df_1)
+            df['zhong_min'] = df_0['归一化'].values[-1]
+            df['zhong_max'] = df_1['归一化'].values[0]
+            df['zhong_位置'] = (df_0['新位置'].values[-1] + df_1['新位置'].values[0]) / 2
             return df
+            
+# =============================================================================
+#         if 0 in df['反面'].values:
+#             df_0 = df[df['反面'] == 0]
+#             df_0.sort_values('归一化', inplace=True)
+#             min_num_0 = list(df_0['归一化'].values)
+#             max_num_0 = list(df_0['归一化'].values[1:])
+#             max_num_0.append(1)
+#             df_0['min_num'] = min_num_0
+#             df_0['max_num'] = max_num_0
+#             
+#         if 1 not in df['反面'].values:
+#             return df_0
+#         elif 0 not in df['反面'].values:
+#             return df_1
+#         else:
+#             df = df_0.append(df_1)
+#             return df
+# =============================================================================
     
     temp_pk = temp_pk.groupby('芯棒编码', sort=False, as_index=False).apply(Func_2)
     

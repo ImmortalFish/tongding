@@ -40,14 +40,18 @@ def Merge(pk, core, ovd, fiber, related, save=None, save_path=None):
     final.drop('光纤编号', axis=1, inplace=True)
     
     #为fiber表的归一化定义一个flag来指示是否在这个区间里
-    final['flag'] = [1 if x['pk_min_num'] < x['归一化'] <= x['pk_max_num'] else 0 for index, x in final.iterrows()]
+    final['flag'] = [1 if x['pk_min_num'] < x['归一化'] <= x['pk_max_num'] else -1 if x['pk_zhong_min'] < x['归一化'] < x['pk_zhong_max'] else 0 for index, x in final.iterrows()]
     
-# =============================================================================
-#     #删除不必要的列
-#     drop_list = ['等级', '计划物料编码', '实际物料编码', '生产日期', '检验日期', '备注', '归一化', 
-#                  'ovd_设备', 'pk_设备代码', 'core_芯棒编码', 'pk_归一化']
-#     final.drop(drop_list, axis=1, inplace=True)
-# =============================================================================
+    
+    final = final[final['flag'] != 0]
+    final['pk_新位置'] = [x['pk_zhong_位置'] if x['flag'] == -1 else x['pk_新位置'] for index, x in final.iterrows()]
+    final = final.groupby('条码', sort=False, as_index=False).apply(lambda x: x.iloc[:1,:])
+    
+    #删除不必要的列
+    drop_list = ['等级', '计划物料编码', '实际物料编码', '生产日期', '检验日期', '备注', '归一化', 
+                 'ovd_设备', 'core_芯棒编码', 'pk_归一化', 'pk_min_num', 'pk_max_num',
+                 'pk_zhong_min', 'pk_zhong_max', 'pk_zhong_位置']
+    final.drop(drop_list, axis=1, inplace=True)
     
     if save == True:
         bf.Save(final, save_path)
@@ -62,5 +66,5 @@ if __name__ == '__main__':
     ovd = pd.read_excel('../temp_data/ovd.xlsx')
     fiber = pd.read_excel('../temp_data/fiber.xlsx')
     related = pd.read_excel('../temp_data/光棒-光纤对应标号.xlsx')
-    see = Merge(pk, core, ovd, fiber, related, save=True, save_path='../final_data/final_11_21.xlsx')#, save=True, save_path='../final_data/final_laping.xlsx'
+    see = Merge(pk, core, ovd, fiber, related, save=True, save_path='../final_data/final_11_21.xlsx')#, save=True, save_path='../final_data/final_11_21.xlsx'
      
